@@ -298,7 +298,7 @@ public class Service : System.Web.Services.WebService
     }
 
     [System.Web.Services.WebMethod]
-    public string getTrackInfo(string playname, string trackID, string title, string location, string duration)
+    public string getTrackInfo(string playname, string trackID)
     {
         try
         {
@@ -330,18 +330,5 @@ public class Service : System.Web.Services.WebService
             return false;
         }
     }
-    /*Public Function CompleteItem(ByVal userId As String, ByVal itemName As String) As Boolean
-        ' This should set the completed element of the specified item to True...
-        Try
-            Dim items As XmlElement = getUserList(userId)
-            Dim item As XmlElement = items.SelectSingleNode("//Item[@name='" & itemName & "']")
-            ' Completed is the last child element...
-            item.LastChild.InnerText = "True"
-            saveDataFile()
-            Return True
-        Catch ex As Exception
-            Return False
-        End Try
-    End Function*/
 
 }//end class
