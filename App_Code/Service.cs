@@ -87,6 +87,14 @@ public class Service : System.Web.Services.WebService
         return xmlItems;
     }
 
+    private XmlElement getTrackList(string id)
+    {
+        XmlElement xmlItems;
+        string xPath = "//track[@id='" + id + "']";
+        xmlItems = (XmlElement)xmlData().DocumentElement.SelectSingleNode(xPath);
+        return xmlItems;
+    }
+
     private bool insertNewClient(string nickname)
     {
         if(getClientList(nickname) != null)
@@ -254,5 +262,86 @@ public class Service : System.Web.Services.WebService
             return false;
         }
     }
+
+    [System.Web.Services.WebMethod]
+    public bool updateClientName(string nickname, string newClientNickName)
+    {
+        try
+        {
+            XmlElement clients = getClientList(nickname);
+            XmlElement client = (System.Xml.XmlElement)clients.SelectSingleNode("//client[@nickname='" + nickname + "']");
+            client.Attributes[0].Value = newClientNickName;
+            saveDataFile();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public bool updatePlaylistName(string nickname, string playname, string newPlayname)
+    {
+        try
+        {
+            XmlElement playlists = getClientList(nickname);
+            XmlElement playlist = (System.Xml.XmlElement) playlists.SelectSingleNode("//playlist[@playname='" + playname + "']");
+            playlist.Attributes[0].Value = newPlayname;
+            saveDataFile();
+            return true;
+        }
+        catch(Exception ex)
+        {
+            return false;
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public string getTrackInfo(string playname, string trackID, string title, string location, string duration)
+    {
+        try
+        {
+            XmlElement playlist = getPlayList(playname);
+            XmlElement trackList = (System.Xml.XmlElement) playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+            return trackList.OuterXml;
+        }
+        catch(Exception ex)
+        {
+            return "</track>";
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public bool updateTrack(string playname, string trackID, string title, string location, string duration)
+    {
+        try
+        {
+            XmlElement playlist = getPlayList(playname);
+            XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+            trackList["title"].InnerText = title;
+            trackList["location"].InnerText = location;
+            trackList["duration"].InnerText = duration;
+            saveDataFile();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+    /*Public Function CompleteItem(ByVal userId As String, ByVal itemName As String) As Boolean
+        ' This should set the completed element of the specified item to True...
+        Try
+            Dim items As XmlElement = getUserList(userId)
+            Dim item As XmlElement = items.SelectSingleNode("//Item[@name='" & itemName & "']")
+            ' Completed is the last child element...
+            item.LastChild.InnerText = "True"
+            saveDataFile()
+            Return True
+        Catch ex As Exception
+            Return False
+        End Try
+    End Function*/
 
 }//end class

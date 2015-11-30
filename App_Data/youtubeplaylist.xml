@@ -85,13 +85,13 @@
       <score>0</score>
       <votecount>0</votecount>
     </playlist>
-    <playlist playname="demo 2">
+    <playlist playname="demo_2">
       <score>0</score>
       <votecount>0</votecount>
       <track id="082a7fd6-014c-4f58-8033-97e23b441e1f">
-        <title>track demo</title>
-        <location>url demo</location>
-        <duration>10:50</duration>
+        <title>updated title</title>
+        <location>updated location</location>
+        <duration>01:30</duration>
       </track>
     </playlist>
   </client>
