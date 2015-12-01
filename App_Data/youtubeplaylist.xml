@@ -81,17 +81,13 @@
     </playlist>
   </client>
   <client nickname="romel">
-    <playlist playname="demo 1">
-      <score>0</score>
-      <votecount>0</votecount>
-    </playlist>
-    <playlist playname="demo_2">
-      <score>0</score>
-      <votecount>0</votecount>
-      <track id="082a7fd6-014c-4f58-8033-97e23b441e1f">
-        <title>updated title</title>
-        <location>updated location</location>
-        <duration>01:30</duration>
+    <playlist playname="playlist 1">
+      <score>4.5</score>
+      <votecount>3</votecount>
+      <track id="b2f06f9d-fb95-4548-a9fa-a68adcc9a9cd">
+        <title>track 1</title>
+        <location>location 1</location>
+        <duration>01:00</duration>
       </track>
     </playlist>
   </client>

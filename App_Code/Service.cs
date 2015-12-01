@@ -119,7 +119,7 @@ public class Service : System.Web.Services.WebService
         return element;
     }
 
-    private bool validScore(string score)
+    private bool isValidScore(string score)
     {
         try
         {
@@ -132,7 +132,7 @@ public class Service : System.Web.Services.WebService
                 return false;
             }
         }
-        catch(Exception ex)
+        catch
         {
             return false;
         }
@@ -160,7 +160,7 @@ public class Service : System.Web.Services.WebService
             clientList.AppendChild(newPlaylist);
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             return false;
         }
@@ -169,8 +169,8 @@ public class Service : System.Web.Services.WebService
     private bool insertNewTrack(string playname, string trackTitle, string urlLocation,
         string duration)
     {
-        //try
-        //{
+        try
+        {
             XmlElement new_Element;
             XmlElement playlist = getPlayList(playname);
             XmlElement newTrack = xmlData().CreateElement("track");
@@ -185,11 +185,11 @@ public class Service : System.Web.Services.WebService
             newTrack.AppendChild(new_Element);
             playlist.AppendChild(newTrack);
             return true;
-        //}
-        //catch(Exception ex)
-        //{
-        //    return false;
-        //}
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /*
@@ -274,7 +274,7 @@ public class Service : System.Web.Services.WebService
             saveDataFile();
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             return false;
         }
@@ -291,7 +291,7 @@ public class Service : System.Web.Services.WebService
             saveDataFile();
             return true;
         }
-        catch(Exception ex)
+        catch
         {
             return false;
         }
@@ -306,7 +306,7 @@ public class Service : System.Web.Services.WebService
             XmlElement trackList = (System.Xml.XmlElement) playlist.SelectSingleNode("//track[@id='" + trackID + "']");
             return trackList.OuterXml;
         }
-        catch(Exception ex)
+        catch
         {
             return "</track>";
         }
@@ -325,10 +325,100 @@ public class Service : System.Web.Services.WebService
             saveDataFile();
             return true;
         }
-        catch (Exception ex)
+        catch
         {
             return false;
         }
     }
+
+    [System.Web.Services.WebMethod]
+    public bool removeTrack(string playname, string trackID)
+    {
+        try
+        {
+            XmlElement playlist = getPlayList(playname);
+            XmlNode trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+            trackList.ParentNode.RemoveChild(trackList);
+            saveDataFile();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public bool removePlaylist(string playname)
+    {
+        try
+        {
+            XmlElement playlist = getPlayList(playname);
+            XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
+            playlistNode.ParentNode.RemoveChild(playlistNode);
+            saveDataFile();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public bool removeClient(string nickname)
+    {
+        try
+        {
+            XmlElement client = getClientList(nickname);
+            XmlNode clientNode = client.SelectSingleNode("//client[@nickname='" + nickname + "']");
+            clientNode.ParentNode.RemoveChild(clientNode);
+            saveDataFile();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [System.Web.Services.WebMethod]
+    public bool voteOnPlaylist(string playname, int score)
+    {
+        try
+        {
+            if (isValidScore(score.ToString()))
+            {
+                XmlElement playlist = getPlayList(playname);
+                XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
+                playlistNode["score"].InnerText = ((Convert.ToDouble(score.ToString()) +
+                    Convert.ToDouble(playlistNode["score"].InnerText)) /
+                    Convert.ToDouble(playlistNode["votecount"].InnerText)).ToString();
+                //playlistNode["score"].InnerText = Convert.ToString(5);
+                playlistNode["votecount"].InnerText = (Convert.ToDouble(playlistNode["votecount"].InnerText) + 1).ToString();
+                saveDataFile();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /*
+    XmlElement playlist = getPlayList(playname);
+    XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
+    
+    XmlElement playlist = getPlayList(playname);
+    XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+    trackList["title"].InnerText = title;
+            trackList["location"].InnerText = location;
+            trackList["duration"].InnerText = duration;
+            saveDataFile();*/
 
 }//end class
