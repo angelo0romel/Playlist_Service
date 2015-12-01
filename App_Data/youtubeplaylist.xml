@@ -81,9 +81,9 @@
     </playlist>
   </client>
   <client nickname="romel">
-    <playlist playname="playlist 1">
-      <score>4.5</score>
-      <votecount>3</votecount>
+    <playlist playname="ps1">
+      <score>1.5</score>
+      <votecount>4</votecount>
       <track id="b2f06f9d-fb95-4548-a9fa-a68adcc9a9cd">
         <title>track 1</title>
         <location>location 1</location>

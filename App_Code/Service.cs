@@ -383,7 +383,7 @@ public class Service : System.Web.Services.WebService
     }
 
     [System.Web.Services.WebMethod]
-    public bool voteOnPlaylist(string playname, int score)
+    public bool voteOnPlaylist(string playname, double score)
     {
         try
         {
@@ -391,11 +391,20 @@ public class Service : System.Web.Services.WebService
             {
                 XmlElement playlist = getPlayList(playname);
                 XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
-                playlistNode["score"].InnerText = ((Convert.ToDouble(score.ToString()) +
-                    Convert.ToDouble(playlistNode["score"].InnerText)) /
-                    Convert.ToDouble(playlistNode["votecount"].InnerText)).ToString();
-                //playlistNode["score"].InnerText = Convert.ToString(5);
-                playlistNode["votecount"].InnerText = (Convert.ToDouble(playlistNode["votecount"].InnerText) + 1).ToString();
+
+                playlistNode["votecount"].InnerText = (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) + 1).ToString();
+
+                if (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) < 1)
+                {
+                    playlistNode["score"].InnerText = score.ToString();
+                }
+                else
+                {
+                   playlistNode["score"].InnerText = ((score +
+                    Convert.ToDouble(playlistNode["score"].InnerText.Trim())) /
+                    Convert.ToInt32(playlistNode["votecount"].InnerText.Trim())).ToString();
+                }  
+                             
                 saveDataFile();
                 return true;
             }
@@ -409,16 +418,5 @@ public class Service : System.Web.Services.WebService
             return false;
         }
     }
-
-    /*
-    XmlElement playlist = getPlayList(playname);
-    XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
-    
-    XmlElement playlist = getPlayList(playname);
-    XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
-    trackList["title"].InnerText = title;
-            trackList["location"].InnerText = location;
-            trackList["duration"].InnerText = duration;
-            saveDataFile();*/
 
 }//end class
