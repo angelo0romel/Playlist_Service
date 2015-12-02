@@ -82,8 +82,8 @@
   </client>
   <client nickname="romel">
     <playlist playname="ps1">
-      <score>1.5</score>
-      <votecount>4</votecount>
+      <score>0</score>
+      <votecount>0</votecount>
       <track id="b2f06f9d-fb95-4548-a9fa-a68adcc9a9cd">
         <title>track 1</title>
         <location>location 1</location>

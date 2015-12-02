@@ -13,6 +13,7 @@ using System.Xml;
 public class Service : System.Web.Services.WebService
 {
     //Private class attributes
+    private static bool validUser = false;
     private XmlDocument xml_Data;//Stores the Xml document.
     private String file_Name;//Stores a valid file/path name for the xml document.
     /*
@@ -66,6 +67,21 @@ public class Service : System.Web.Services.WebService
         {
             xml_Data.Save(fileName());
         }
+    }
+
+    private XmlDocument xmlUser()
+    {
+        XmlDocument xml_User = new XmlDocument();
+        xml_User.Load(Server.MapPath("App_Data\\authenticate.xml"));
+        return xml_User;
+    }//end getXmlFile()
+
+    private XmlElement getUserCredentials(string username)
+    {
+        XmlElement validUser;
+        string xPath = "//user[@name='" + username + "']";
+        validUser = (XmlElement) xmlUser().DocumentElement.SelectSingleNode(xPath);
+        return validUser;
     }
 
     /*
@@ -195,6 +211,34 @@ public class Service : System.Web.Services.WebService
     /*
     Start of web methods ******************************************************************
     */
+    [System.Web.Services.WebMethod]
+    public bool login(string username, string password)
+    {   
+        try {
+            XmlElement user = getUserCredentials(username);
+            XmlNode userNode = user.SelectSingleNode("//user[@name='" + username + "']");
+            if (userNode["password"].InnerText.Trim() == password)
+            {
+                validUser = true;
+                return true;
+            }
+            else
+            {
+                validUser = false;
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }        
+    }
+
+    [System.Web.Services.WebMethod]
+    public void logout()
+    {
+        validUser = false;
+    }
 
     [System.Web.Services.WebMethod]
     /*
@@ -202,31 +246,52 @@ public class Service : System.Web.Services.WebService
         */
     public string getClientPlaylistCollection(string nickname)
     {
-        return getClientList(nickname).OuterXml;
+        if (validUser)
+        {
+            return getClientList(nickname).OuterXml;
+        }
+        else
+        {
+            return "";
+        }
     }
 
     [System.Web.Services.WebMethod]
     public string getPlaylist(string nickname, string playname)
     {
-        XmlElement playlists = getClientList(nickname);
-        XmlElement playlist = (System.Xml.XmlElement) playlists.SelectSingleNode("//playlist[@playname='" + playname + "']");
-        if(playlist != null)
+        if (validUser)
         {
-            return playlist.OuterXml;
+            XmlElement playlists = getClientList(nickname);
+            XmlElement playlist = (System.Xml.XmlElement)playlists.SelectSingleNode("//playlist[@playname='" + playname + "']");
+            if (playlist != null)
+            {
+                return playlist.OuterXml;
+            }
+            else
+            {
+                return "</playlist>";
+            }
         }
         else
         {
-            return "</playlist>";
+            return "";
         }
     }
 
     [System.Web.Services.WebMethod]
     public bool createNewClient(string nickname)
     {
-        if (insertNewClient(nickname))
+        if (validUser)
         {
-            saveDataFile();
-            return true;
+            if (insertNewClient(nickname))
+            {
+                saveDataFile();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -237,10 +302,17 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool createNewPlayList(string nickname, string playlistname)
     {
-        if (insertNewPlaylist(nickname, playlistname))
+        if (validUser)
         {
-            saveDataFile();
-            return true;
+            if (insertNewPlaylist(nickname, playlistname))
+            {
+                saveDataFile();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -252,10 +324,17 @@ public class Service : System.Web.Services.WebService
     public bool createNewTrack(string playname, string trackTitle, string urlLocation,
         string duration)
     {
-        if (insertNewTrack(playname, trackTitle, urlLocation, duration))
+        if (validUser)
         {
-            saveDataFile();
-            return true;
+            if (insertNewTrack(playname, trackTitle, urlLocation, duration))
+            {
+                saveDataFile();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -266,15 +345,22 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool updateClientName(string nickname, string newClientNickName)
     {
-        try
+        if (validUser)
         {
-            XmlElement clients = getClientList(nickname);
-            XmlElement client = (System.Xml.XmlElement)clients.SelectSingleNode("//client[@nickname='" + nickname + "']");
-            client.Attributes[0].Value = newClientNickName;
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement clients = getClientList(nickname);
+                XmlElement client = (System.Xml.XmlElement)clients.SelectSingleNode("//client[@nickname='" + nickname + "']");
+                client.Attributes[0].Value = newClientNickName;
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -283,15 +369,22 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool updatePlaylistName(string nickname, string playname, string newPlayname)
     {
-        try
+        if (validUser)
         {
-            XmlElement playlists = getClientList(nickname);
-            XmlElement playlist = (System.Xml.XmlElement) playlists.SelectSingleNode("//playlist[@playname='" + playname + "']");
-            playlist.Attributes[0].Value = newPlayname;
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement playlists = getClientList(nickname);
+                XmlElement playlist = (System.Xml.XmlElement)playlists.SelectSingleNode("//playlist[@playname='" + playname + "']");
+                playlist.Attributes[0].Value = newPlayname;
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -300,32 +393,46 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public string getTrackInfo(string playname, string trackID)
     {
-        try
+        if (validUser)
         {
-            XmlElement playlist = getPlayList(playname);
-            XmlElement trackList = (System.Xml.XmlElement) playlist.SelectSingleNode("//track[@id='" + trackID + "']");
-            return trackList.OuterXml;
+            try
+            {
+                XmlElement playlist = getPlayList(playname);
+                XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+                return trackList.OuterXml;
+            }
+            catch
+            {
+                return "</track>";
+            }
         }
-        catch
+        else
         {
-            return "</track>";
+            return "";
         }
     }
 
     [System.Web.Services.WebMethod]
     public bool updateTrack(string playname, string trackID, string title, string location, string duration)
     {
-        try
+        if (validUser)
         {
-            XmlElement playlist = getPlayList(playname);
-            XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
-            trackList["title"].InnerText = title;
-            trackList["location"].InnerText = location;
-            trackList["duration"].InnerText = duration;
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement playlist = getPlayList(playname);
+                XmlElement trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+                trackList["title"].InnerText = title;
+                trackList["location"].InnerText = location;
+                trackList["duration"].InnerText = duration;
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -334,15 +441,22 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool removeTrack(string playname, string trackID)
     {
-        try
+        if (validUser)
         {
-            XmlElement playlist = getPlayList(playname);
-            XmlNode trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
-            trackList.ParentNode.RemoveChild(trackList);
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement playlist = getPlayList(playname);
+                XmlNode trackList = (System.Xml.XmlElement)playlist.SelectSingleNode("//track[@id='" + trackID + "']");
+                trackList.ParentNode.RemoveChild(trackList);
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -351,15 +465,22 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool removePlaylist(string playname)
     {
-        try
+        if (validUser)
         {
-            XmlElement playlist = getPlayList(playname);
-            XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
-            playlistNode.ParentNode.RemoveChild(playlistNode);
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement playlist = getPlayList(playname);
+                XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
+                playlistNode.ParentNode.RemoveChild(playlistNode);
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -368,15 +489,22 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool removeClient(string nickname)
     {
-        try
+        if (validUser)
         {
-            XmlElement client = getClientList(nickname);
-            XmlNode clientNode = client.SelectSingleNode("//client[@nickname='" + nickname + "']");
-            clientNode.ParentNode.RemoveChild(clientNode);
-            saveDataFile();
-            return true;
+            try
+            {
+                XmlElement client = getClientList(nickname);
+                XmlNode clientNode = client.SelectSingleNode("//client[@nickname='" + nickname + "']");
+                clientNode.ParentNode.RemoveChild(clientNode);
+                saveDataFile();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
-        catch
+        else
         {
             return false;
         }
@@ -385,35 +513,42 @@ public class Service : System.Web.Services.WebService
     [System.Web.Services.WebMethod]
     public bool voteOnPlaylist(string playname, double score)
     {
-        try
+        if (validUser)
         {
-            if (isValidScore(score.ToString()))
+            try
             {
-                XmlElement playlist = getPlayList(playname);
-                XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
-
-                playlistNode["votecount"].InnerText = (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) + 1).ToString();
-
-                if (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) < 1)
+                if (isValidScore(score.ToString()))
                 {
-                    playlistNode["score"].InnerText = score.ToString();
+                    XmlElement playlist = getPlayList(playname);
+                    XmlNode playlistNode = playlist.SelectSingleNode("//playlist[@playname='" + playname + "']");
+
+                    playlistNode["votecount"].InnerText = (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) + 1).ToString();
+
+                    if (Convert.ToInt32(playlistNode["votecount"].InnerText.Trim()) < 1)
+                    {
+                        playlistNode["score"].InnerText = score.ToString();
+                    }
+                    else
+                    {
+                        playlistNode["score"].InnerText = ((score +
+                         Convert.ToDouble(playlistNode["score"].InnerText.Trim())) /
+                         Convert.ToInt32(playlistNode["votecount"].InnerText.Trim())).ToString();
+                    }
+
+                    saveDataFile();
+                    return true;
                 }
                 else
                 {
-                   playlistNode["score"].InnerText = ((score +
-                    Convert.ToDouble(playlistNode["score"].InnerText.Trim())) /
-                    Convert.ToInt32(playlistNode["votecount"].InnerText.Trim())).ToString();
-                }  
-                             
-                saveDataFile();
-                return true;
+                    return false;
+                }
             }
-            else
+            catch
             {
                 return false;
             }
         }
-        catch
+        else
         {
             return false;
         }
