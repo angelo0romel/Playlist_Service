@@ -199,6 +199,8 @@ public class Service : System.Web.Services.WebService
             newTrack.AppendChild(new_Element);
             new_Element = newElement("duration", duration);
             newTrack.AppendChild(new_Element);
+            new_Element = newElement("rank", "");
+            newTrack.AppendChild(new_Element);
             playlist.AppendChild(newTrack);
             return true;
         }
