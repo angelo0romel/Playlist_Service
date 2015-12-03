@@ -1,4 +1,8 @@
-﻿using System;
+﻿/*
+Author: Angelo Romel Lopez, BSc Computing Science 3rd Yr
+Module: Web Services
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -12,29 +16,35 @@ using System.Xml;
 
 public class Service : System.Web.Services.WebService
 {
-    //Private class attributes
-    private static bool validUser = false;
+    /// <summary>
+    /// Private class attributes
+    /// </summary>
+    private static bool validUser = false;//true if a user is logged in, false otherwise.
     private XmlDocument xml_Data;//Stores the Xml document.
     private String file_Name;//Stores a valid file/path name for the xml document.
-    /*
-    Default constructor.
-        */
-    public Service () {
-    }//end Service()
 
-    /*
-    This method will return a valid name and path of the youtubeplaylist xml.
-        */
+    /// <summary>
+    /// Default empty constructor.
+    /// </summary>
+    public Service () {
+    }
+
+    
+    /// <summary>
+    /// This method will return a valid name and path of the youtubeplaylist xml.
+    /// </summary>
+    /// <returns>A valid path and filename.</returns>
     private String fileName()
     {
         return Server.MapPath("App_Data\\youtubeplaylist.xml");
-    }//end fileName()
+    }
 
-    /*
-    Loads the XML data file from a valid filename (path: App_Data\...) into an xml document
-    if the xml document is empty, and return a valid xml document. Otherwise, just return an existing
-    xml document.
-        */
+    /// <summary>
+    /// Loads the XML data file from a valid filename (path: App_Data\...) into an xml document
+    /// if the xml document is empty, and return a valid xml document.Otherwise, just return an existing
+    /// xml document.
+    /// </summary>
+    /// <returns>A valid xml document.</returns>
     private XmlDocument xmlData()
     {
         if(xml_Data == null)
@@ -42,8 +52,13 @@ public class Service : System.Web.Services.WebService
             getDataFile();
         }
         return xml_Data;
-    }//end getXmlFile()
+    }
 
+    /// <summary>
+    /// Checks if the xml file exists in the App_Data
+    /// and loads the file in an xml document type variable.
+    /// </summary>
+    /// <returns>true if file exists, false otherwise.</returns>
     private bool getDataFile()
     {
         if (System.IO.File.Exists(fileName()))
@@ -58,9 +73,9 @@ public class Service : System.Web.Services.WebService
         }
     }
 
-    /*
-    Saves the xml document into the xml file.
-        */
+    /// <summary>
+    /// Saves the xml document into the xml file.
+    /// </summary>
     public void saveDataFile()
     {
         if(xml_Data != null)
@@ -69,13 +84,23 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// This method will return a valid name and path of the authenticate xml file that 
+    /// contains the list of valid users and passwords used for authentication.
+    /// </summary>
+    /// <returns></returns>
     private XmlDocument xmlUser()
     {
         XmlDocument xml_User = new XmlDocument();
         xml_User.Load(Server.MapPath("App_Data\\authenticate.xml"));
         return xml_User;
-    }//end getXmlFile()
+    }
 
+    /// <summary>
+    /// Returns an xml element containing the username and password of a selected user.
+    /// </summary>
+    /// <param name="username">The user's username</param>
+    /// <returns></returns>
     private XmlElement getUserCredentials(string username)
     {
         XmlElement validUser;
@@ -83,10 +108,13 @@ public class Service : System.Web.Services.WebService
         validUser = (XmlElement) xmlUser().DocumentElement.SelectSingleNode(xPath);
         return validUser;
     }
-
-    /*
-  
-    */
+    
+    /// <summary>
+    /// Retrieves the playlist collection of a client.
+    /// </summary>
+    /// <param name="nickname">The nickname will be compared with the nickname attribute
+    /// of the client node.</param>
+    /// <returns>Xml element containing a client's playlist collection.</returns>
     private XmlElement getClientList(string nickname)
     {
         XmlElement xmlItems;
@@ -95,6 +123,12 @@ public class Service : System.Web.Services.WebService
         return xmlItems;
     }
 
+    /// <summary>
+    /// Retrieves a playlist's information and collection tracks.
+    /// </summary>
+    /// <param name="playname">The name attribute of the playlist element.</param>
+    /// <returns>Xml element that contains a playlist's additional information and
+    /// collection of tracks.</returns>
     private XmlElement getPlayList(string playname)
     {
         XmlElement xmlItems;
@@ -103,6 +137,13 @@ public class Service : System.Web.Services.WebService
         return xmlItems;
     }
 
+    /// <summary>
+    /// Retrieves a track's information such as title, location, duration and
+    /// rank.
+    /// </summary>
+    /// <param name="id">The attribute of a track that contains a 
+    /// auto-generated GUID value.</param>
+    /// <returns>A collection of track information.</returns>
     private XmlElement getTrackList(string id)
     {
         XmlElement xmlItems;
@@ -111,6 +152,12 @@ public class Service : System.Web.Services.WebService
         return xmlItems;
     }
 
+    /// <summary>
+    /// Creates a new client with a nickname attribute
+    /// </summary>
+    /// <param name="nickname"></param>
+    /// <returns>True if a new client is created, false if the client already
+    /// exists.</returns>
     private bool insertNewClient(string nickname)
     {
         if(getClientList(nickname) != null)
@@ -128,6 +175,13 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Creates a new element identified by the name parameter and gives
+    /// it a value.
+    /// </summary>
+    /// <param name="name">The name to identify the element.</param>
+    /// <param name="value">The value of the element.</param>
+    /// <returns>The newly created element.</returns>
     private XmlElement newElement(string name, string value)
     {
         XmlElement element = xmlData().CreateElement(name);
@@ -135,6 +189,13 @@ public class Service : System.Web.Services.WebService
         return element;
     }
 
+    /// <summary>
+    /// Tests the value of the score parameter to satisfy the following conditions:
+    /// a. A valid number.
+    /// b. Value is in the range of 0-5.
+    /// </summary>
+    /// <param name="score">The score will be parsed to an integer before being tested.</param>
+    /// <returns>True if the score is valid, false otherwise.</returns>
     private bool isValidScore(string score)
     {
         try
@@ -154,11 +215,21 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Genereates a GUID - globally unique identifier to be used as the ID of a track.
+    /// </summary>
+    /// <returns>GUID value.</returns>
     private string generateGuid()
     {
         return System.Guid.NewGuid().ToString();
     }
 
+    /// <summary>
+    /// Creates a new playlist for a particular client.
+    /// </summary>
+    /// <param name="nickname">The client's nickname</param>
+    /// <param name="playlistname">The name of the playlist to be created.</param>
+    /// <returns>True if the playlist was successfully created.</returns>
     private bool insertNewPlaylist(string nickname, string playlistname)
     {
         try
@@ -182,6 +253,15 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Creates a new track for a particualr playlist that contains a link to a youtube
+    /// video.
+    /// </summary>
+    /// <param name="playname">The name of the playlist where the track is to be created.</param>
+    /// <param name="trackTitle">The title of the track to be created.</param>
+    /// <param name="urlLocation">The shorl url of the youtube video.</param>
+    /// <param name="duration">The duration of the video</param>
+    /// <returns>True if the track was successfully created, false otherwise.</returns>
     private bool insertNewTrack(string playname, string trackTitle, string urlLocation,
         string duration)
     {
@@ -213,6 +293,14 @@ public class Service : System.Web.Services.WebService
     /*
     Start of web methods ******************************************************************
     */
+
+    /// <summary>
+    /// Log in to the web service to authenticate user and allow
+    /// access to the web methods.
+    /// </summary>
+    /// <param name="username">The user's username</param>
+    /// <param name="password">The user's password</param>
+    /// <returns>True if the username and password exists, false otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool login(string username, string password)
     {   
@@ -236,16 +324,22 @@ public class Service : System.Web.Services.WebService
         }        
     }
 
+    /// <summary>
+    /// Log out of the web service and prevent access to
+    /// the web methods.
+    /// </summary>
     [System.Web.Services.WebMethod]
     public void logout()
     {
         validUser = false;
     }
 
+    /// <summary>
+    /// Retrieves a client's playlist collection.
+    /// </summary>
+    /// <param name="nickname">The client's nickname.</param>
+    /// <returns>The nodes in the collection.</returns>
     [System.Web.Services.WebMethod]
-    /*
-    Gets the current element and all of its child nodes.
-        */
     public string getClientPlaylistCollection(string nickname)
     {
         if (validUser)
@@ -258,6 +352,13 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Retrieves a client's particular playlist identified by it's
+    /// playname attribute.
+    /// </summary>
+    /// <param name="nickname">The client's nickname.</param>
+    /// <param name="playname">The playlist's playname.</param>
+    /// <returns>The playlist information and the tracks contained within.</returns>
     [System.Web.Services.WebMethod]
     public string getPlaylist(string nickname, string playname)
     {
@@ -280,6 +381,11 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Creates a new client.
+    /// </summary>
+    /// <param name="nickname">The client's nickname attribute.</param>
+    /// <returns>True if client was created successfully, false otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool createNewClient(string nickname)
     {
@@ -301,6 +407,12 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Creates a new playlist for a particular client.
+    /// </summary>
+    /// <param name="nickname">The client's nickname.</param>
+    /// <param name="playlistname">The name of the playlist to be created.</param>
+    /// <returns>True if the playlist was successfully created.</returns>
     [System.Web.Services.WebMethod]
     public bool createNewPlayList(string nickname, string playlistname)
     {
@@ -322,6 +434,15 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Create a new track for a particular playlist the contains a link to a
+    /// youtube video.
+    /// </summary>
+    /// <param name="playname">The name of the playlist.</param>
+    /// <param name="trackTitle">The title of the track.</param>
+    /// <param name="urlLocation">A short url location of the youtube video.</param>
+    /// <param name="duration">Duration of the track</param>
+    /// <returns>True of the track was successfully created.</returns>
     [System.Web.Services.WebMethod]
     public bool createNewTrack(string playname, string trackTitle, string urlLocation,
         string duration)
@@ -344,6 +465,12 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Update/change a client's nickname.
+    /// </summary>
+    /// <param name="nickname">The client's current nickname.</param>
+    /// <param name="newClientNickName">The client's new nickname.</param>
+    /// <returns>True if the update was successful, false otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool updateClientName(string nickname, string newClientNickName)
     {
@@ -368,6 +495,13 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Update/change a playlist's name.
+    /// </summary>
+    /// <param name="nickname">The client's nickname where the playlist is located.</param>
+    /// <param name="playname">The playlist's current name.</param>
+    /// <param name="newPlayname">The playlist's new name.</param>
+    /// <returns>True if the update was successful, false otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool updatePlaylistName(string nickname, string playname, string newPlayname)
     {
@@ -392,6 +526,12 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Retrieve track information for a particular playlist.
+    /// </summary>
+    /// <param name="playname">The name of the playlist.</param>
+    /// <param name="trackID">The ID of the track to retrieve.</param>
+    /// <returns>Track information like title, location, duration and rank.</returns>
     [System.Web.Services.WebMethod]
     public string getTrackInfo(string playname, string trackID)
     {
@@ -414,6 +554,15 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Update/change a track information.
+    /// </summary>
+    /// <param name="playname">The name of the playlist where the track is located.</param>
+    /// <param name="trackID">The ID of the track to be updated.</param>
+    /// <param name="title">The new title of the track.</param>
+    /// <param name="location">The new location of the track.</param>
+    /// <param name="duration">The new duration of the track.</param>
+    /// <returns></returns>
     [System.Web.Services.WebMethod]
     public bool updateTrack(string playname, string trackID, string title, string location, string duration)
     {
@@ -440,6 +589,13 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Removes a particular track from a playlist.
+    /// </summary>
+    /// <param name="playname">The name of the playlist where the track to be removed
+    /// is located.</param>
+    /// <param name="trackID">The ID of the track to be removed.</param>
+    /// <returns>True if the track was removed successfully. False otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool removeTrack(string playname, string trackID)
     {
@@ -464,6 +620,11 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Removes a particular playlist.
+    /// </summary>
+    /// <param name="playname">The playlist identified by it's name.</param>
+    /// <returns>True if the playlist was removed successfully. False otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool removePlaylist(string playname)
     {
@@ -488,6 +649,11 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Removes a particular client from the xml file.
+    /// </summary>
+    /// <param name="nickname">The client identified by it's nickname.</param>
+    /// <returns>True if the client was removed successfully. False otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool removeClient(string nickname)
     {
@@ -512,6 +678,12 @@ public class Service : System.Web.Services.WebService
         }
     }
 
+    /// <summary>
+    /// Place a vote on a particular playlist. A user can vote from 0 to 5.
+    /// </summary>
+    /// <param name="playname">The name of the playlist to vote on.</param>
+    /// <param name="score">The score from 0 to 5.</param>
+    /// <returns>True if the vote is valid or was succesful. False otherwise.</returns>
     [System.Web.Services.WebMethod]
     public bool voteOnPlaylist(string playname, double score)
     {
